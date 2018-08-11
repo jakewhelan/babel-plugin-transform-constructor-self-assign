@@ -1,6 +1,6 @@
 {
   "name": "@jakewhelan/babel-plugin-transform-constructor-self-assign",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Babel plugin to automagically assign ES2015 class constructor arguments to this, as seen in Typescript",
   "main": "./dist/index.js",
   "scripts": {
