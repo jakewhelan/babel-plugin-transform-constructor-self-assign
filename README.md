@@ -1,6 +1,6 @@
 # @jakewhelan/babel-plugin-transform-constructor-self-assign
 
-Babel plugin to automagically assign ES2015 class constructor arguments to this, as seen in Typescript
+Babel plugin to automagically assign ES2015 class constructor arguments to `this`, as seen in Typescript
 
 Before:
 ```js
