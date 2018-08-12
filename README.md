@@ -9,7 +9,6 @@ $ npm i -D @jakewhelan/babel-plugin-transform-constructor-self-assign
 ```
 ```js
 // babelrc.js
-
 module.exports = {
   plugins: [
     require('@jakewhelan/babel-plugin-transform-constructor-self-assign')
