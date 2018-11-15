@@ -19,6 +19,52 @@ var _require = require('@babel/helper-plugin-utils'),
 var _require2 = require('@babel/core'),
     t = _require2.types;
 
+var isAssignmentExpressionDuplicate = function isAssignmentExpressionDuplicate(body, assignmentExpression) {
+  var masterObjectType = 'ThisExpression';
+  var masterType = assignmentExpression.type,
+      masterOperator = assignmentExpression.operator,
+      masterPropertyName = assignmentExpression.left.property.name,
+      masterRightName = assignmentExpression.right.name;
+  var match = body.filter(function (_ref) {
+    var type = _ref.type,
+        expression = _ref.expression;
+    return type === 'ExpressionStatement' && expression.type === 'AssignmentExpression';
+  }).map(function (_ref2) {
+    var expression = _ref2.expression;
+    return expression;
+  }).find(function (expression) {
+    var _expression$type = expression.type,
+        type = _expression$type === void 0 ? null : _expression$type,
+        _expression$operator = expression.operator,
+        operator = _expression$operator === void 0 ? null : _expression$operator,
+        _expression$left = expression.left;
+    _expression$left = _expression$left === void 0 ? {} : _expression$left;
+    var _expression$left$obje = _expression$left.object;
+    _expression$left$obje = _expression$left$obje === void 0 ? {} : _expression$left$obje;
+    var _expression$left$obje2 = _expression$left$obje.type,
+        objectType = _expression$left$obje2 === void 0 ? null : _expression$left$obje2,
+        _expression$left$prop = _expression$left.property;
+    _expression$left$prop = _expression$left$prop === void 0 ? {} : _expression$left$prop;
+    var _expression$left$prop2 = _expression$left$prop.name,
+        propertyName = _expression$left$prop2 === void 0 ? null : _expression$left$prop2,
+        _expression$right = expression.right;
+    _expression$right = _expression$right === void 0 ? {} : _expression$right;
+    var _expression$right$nam = _expression$right.name,
+        rightName = _expression$right$nam === void 0 ? null : _expression$right$nam;
+    if (masterType !== type) return false;
+    if (masterOperator !== operator) return false;
+    if (masterObjectType !== objectType) return false;
+    if (masterPropertyName !== propertyName) return false;
+    if (masterRightName !== rightName) return false;
+    console.log(masterType, masterOperator, masterObjectType, masterPropertyName, masterRightName);
+    console.log(type, operator, objectType, propertyName, rightName);
+    console.log('hey, thats pretty good');
+    return true;
+  });
+  var isMatch = Boolean(match);
+  return isMatch;
+};
+
 var _default = declare(function (api) {
   api.assertVersion(7);
   return {
@@ -58,16 +104,19 @@ var _default = declare(function (api) {
         }();
 
         if (!constructor) return;
-
-        var bindings = _toConsumableArray(Object.keys(constructor.scope.bindings));
-
-        var assignmentExpressionStatements = bindings.map(function (binding) {
+        console.log(constructor.scope.block.params);
+        var params = constructor.scope.block.params.map(function (param) {
+          return param.name;
+        });
+        console.log(params);
+        var assignmentExpressionStatements = params.map(function (binding) {
           var self = t.identifier('this');
           var name = t.identifier(binding);
           var thisDotBindingName = t.memberExpression(self, name);
           var bindingName = t.identifier(binding);
           var assignmentExpression = t.assignmentExpression('=', thisDotBindingName, bindingName);
-          return t.expressionStatement(assignmentExpression);
+          var isDuplicate = isAssignmentExpressionDuplicate(constructor.node.body.body, assignmentExpression);
+          if (!isDuplicate) return t.expressionStatement(assignmentExpression);
         });
         constructor.node.body.body = _toConsumableArray(assignmentExpressionStatements).concat(_toConsumableArray(constructor.node.body.body));
       }
