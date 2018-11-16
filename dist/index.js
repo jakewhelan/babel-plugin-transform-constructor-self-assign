@@ -70,6 +70,19 @@ var isAssignmentExpressionDuplicate = function isAssignmentExpressionDuplicate()
   var isMatch = Boolean(match);
   return isMatch;
 };
+/**
+ * Returns provided array, sans the provided index
+ * @method getArrayWithoutIndex
+ * @param {Object[]} array array to remove index from
+ * @param {Number} index index to remove from array
+ */
+
+
+var getArrayWithoutIndex = function getArrayWithoutIndex(array) {
+  var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  if (!Number.isInteger(index) || !array) throw new Error('Error: getArrayWithoutIndex must be called with all arguments present.');
+  return array.slice(0, index).concat(array.slice(index === array.length ? index : index + 1, array.length));
+};
 
 var _default = declare(function (api) {
   api.assertVersion(7);
@@ -123,7 +136,25 @@ var _default = declare(function (api) {
           var isDuplicate = isAssignmentExpressionDuplicate(constructor.node.body.body, assignmentExpression);
           if (!isDuplicate) return t.expressionStatement(assignmentExpression);
         });
-        constructor.node.body.body = _toConsumableArray(assignmentExpressionStatements).concat(_toConsumableArray(constructor.node.body.body));
+        console.log(constructor.node.body.body[0]);
+        var superIndex = constructor.node.body.body.filter(function (node) {
+          return node.type === 'ExpressionStatement' && node.expression.type === 'CallExpression';
+        }).findIndex(function () {
+          var _ref5 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+              _ref5$expression = _ref5.expression;
+
+          _ref5$expression = _ref5$expression === void 0 ? {} : _ref5$expression;
+          var _ref5$expression$call = _ref5$expression.callee;
+          _ref5$expression$call = _ref5$expression$call === void 0 ? {} : _ref5$expression$call;
+          var _ref5$expression$call2 = _ref5$expression$call.type,
+              type = _ref5$expression$call2 === void 0 ? null : _ref5$expression$call2;
+          return type === 'Super';
+        });
+        var isSuperPresent = superIndex !== -1;
+        var superCallExpression = isSuperPresent ? [constructor.node.body.body[superIndex]] : [];
+        var constructorBodyWithoutSuper = isSuperPresent ? getArrayWithoutIndex(constructor.node.body.body, superIndex) : constructor.node.body.body;
+        console.log(superIndex, isSuperPresent, constructor.node.body.body, 'yeet', constructorBodyWithoutSuper);
+        constructor.node.body.body = superCallExpression.concat(_toConsumableArray(assignmentExpressionStatements), _toConsumableArray(constructorBodyWithoutSuper));
       }
     }
   };
