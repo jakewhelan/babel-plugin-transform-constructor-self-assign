@@ -18,6 +18,14 @@ var _require = require('@babel/helper-plugin-utils'),
 
 var _require2 = require('@babel/core'),
     t = _require2.types;
+/**
+ * Determines if the constructor body already has a matching AssignmentExpression
+ * statement
+ * @method isAssignmentExpressionDuplicate
+ * @param {Object[]} body constructor.node.body.body - constructor body
+ * @param {BabelAssignmentExpression} assignmentExpression newly created assignmentExpression
+ */
+
 
 var isAssignmentExpressionDuplicate = function isAssignmentExpressionDuplicate() {
   var body = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
@@ -136,9 +144,8 @@ var _default = declare(function (api) {
           var isDuplicate = isAssignmentExpressionDuplicate(constructor.node.body.body, assignmentExpression);
           if (!isDuplicate) return t.expressionStatement(assignmentExpression);
         });
-        console.log(constructor.node.body.body[0]);
         var superIndex = constructor.node.body.body.filter(function (node) {
-          return node.type === 'ExpressionStatement' && node.expression.type === 'CallExpression';
+          return node && node.type === 'ExpressionStatement' && node.expression && node.expression.type === 'CallExpression';
         }).findIndex(function () {
           var _ref5 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
               _ref5$expression = _ref5.expression;
@@ -153,7 +160,6 @@ var _default = declare(function (api) {
         var isSuperPresent = superIndex !== -1;
         var superCallExpression = isSuperPresent ? [constructor.node.body.body[superIndex]] : [];
         var constructorBodyWithoutSuper = isSuperPresent ? getArrayWithoutIndex(constructor.node.body.body, superIndex) : constructor.node.body.body;
-        console.log(superIndex, isSuperPresent, constructor.node.body.body, 'yeet', constructorBodyWithoutSuper);
         constructor.node.body.body = superCallExpression.concat(_toConsumableArray(assignmentExpressionStatements), _toConsumableArray(constructorBodyWithoutSuper));
       }
     }
