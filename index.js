@@ -1,6 +1,13 @@
 const { declare } = require('@babel/helper-plugin-utils');
 const { types: t } = require('@babel/core');
 
+/**
+ * Determines if the constructor body already has a matching AssignmentExpression
+ * statement
+ * @method isAssignmentExpressionDuplicate
+ * @param {Object[]} body constructor.node.body.body - constructor body
+ * @param {BabelAssignmentExpression} assignmentExpression newly created assignmentExpression
+ */
 const isAssignmentExpressionDuplicate = (body = null, assignmentExpression = null) => {
   if (!body || !body.length || !assignmentExpression) return false;
 
@@ -47,6 +54,19 @@ const isAssignmentExpressionDuplicate = (body = null, assignmentExpression = nul
   return isMatch;
 }
 
+/**
+ * Returns provided array, sans the provided index
+ * @method getArrayWithoutIndex
+ * @param {Object[]} array array to remove index from
+ * @param {Number} index index to remove from array
+ */
+const getArrayWithoutIndex = (array, index = null) => {
+  if (!Number.isInteger(index) || !array) throw new Error('Error: getArrayWithoutIndex must be called with all arguments present.')
+  return array
+    .slice(0, index)
+    .concat(array.slice(index === array.length ? index : index + 1, array.length))
+}
+
 export default declare(api => {
   api.assertVersion(7);
   
@@ -78,9 +98,28 @@ export default declare(api => {
           if (!isDuplicate) return t.expressionStatement(assignmentExpression)
         });
 
+        console.log(constructor.node.body.body[0])
+
+        const superIndex = constructor.node.body.body
+          .filter(node => node.type === 'ExpressionStatement' && node.expression.type === 'CallExpression')
+          .findIndex(({ expression: { callee: { type = null } = {} } = {} } = {}) => type === 'Super');
+
+        const isSuperPresent = superIndex !== -1;
+
+        const superCallExpression = isSuperPresent
+          ? [constructor.node.body.body[superIndex]]
+          : []
+
+        const constructorBodyWithoutSuper = isSuperPresent
+          ? getArrayWithoutIndex(constructor.node.body.body, superIndex)
+          : constructor.node.body.body
+
+          console.log(superIndex, isSuperPresent, constructor.node.body.body, 'yeet', constructorBodyWithoutSuper)
+
         constructor.node.body.body = [
+          ...superCallExpression,
           ...assignmentExpressionStatements,
-          ...constructor.node.body.body
+          ...constructorBodyWithoutSuper
         ]
       }
     }
