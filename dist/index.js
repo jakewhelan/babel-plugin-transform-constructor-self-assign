@@ -19,18 +19,27 @@ var _require = require('@babel/helper-plugin-utils'),
 var _require2 = require('@babel/core'),
     t = _require2.types;
 
-var isAssignmentExpressionDuplicate = function isAssignmentExpressionDuplicate(body, assignmentExpression) {
+var isAssignmentExpressionDuplicate = function isAssignmentExpressionDuplicate() {
+  var body = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  var assignmentExpression = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  if (!body || !body.length || !assignmentExpression) return false;
   var masterObjectType = 'ThisExpression';
   var masterType = assignmentExpression.type,
       masterOperator = assignmentExpression.operator,
       masterPropertyName = assignmentExpression.left.property.name,
       masterRightName = assignmentExpression.right.name;
-  var match = body.filter(function (_ref) {
-    var type = _ref.type,
-        expression = _ref.expression;
+  var match = body.filter(function () {
+    var _ref2, _ref2$type;
+
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref$type = _ref.type,
+        type = _ref$type === void 0 ? null : _ref$type,
+        _ref$expression = _ref.expression,
+        expression = _ref$expression === void 0 ? (_ref2 = {}, _ref2$type = _ref2.type, type = _ref2$type === void 0 ? null : _ref2$type, _ref2) : _ref$expression;
+
     return type === 'ExpressionStatement' && expression.type === 'AssignmentExpression';
-  }).map(function (_ref2) {
-    var expression = _ref2.expression;
+  }).map(function (_ref3) {
+    var expression = _ref3.expression;
     return expression;
   }).find(function (expression) {
     var _expression$type = expression.type,
@@ -56,9 +65,6 @@ var isAssignmentExpressionDuplicate = function isAssignmentExpressionDuplicate(b
     if (masterObjectType !== objectType) return false;
     if (masterPropertyName !== propertyName) return false;
     if (masterRightName !== rightName) return false;
-    console.log(masterType, masterOperator, masterObjectType, masterPropertyName, masterRightName);
-    console.log(type, operator, objectType, propertyName, rightName);
-    console.log('hey, thats pretty good');
     return true;
   });
   var isMatch = Boolean(match);
@@ -104,11 +110,10 @@ var _default = declare(function (api) {
         }();
 
         if (!constructor) return;
-        console.log(constructor.scope.block.params);
-        var params = constructor.scope.block.params.map(function (param) {
-          return param.name;
+        var params = constructor.scope.block.params.map(function (_ref4) {
+          var name = _ref4.name;
+          return name;
         });
-        console.log(params);
         var assignmentExpressionStatements = params.map(function (binding) {
           var self = t.identifier('this');
           var name = t.identifier(binding);

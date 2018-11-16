@@ -1,7 +1,9 @@
 const { declare } = require('@babel/helper-plugin-utils');
 const { types: t } = require('@babel/core');
 
-const isAssignmentExpressionDuplicate = (body, assignmentExpression) => {
+const isAssignmentExpressionDuplicate = (body = null, assignmentExpression = null) => {
+  if (!body || !body.length || !assignmentExpression) return false;
+
   const masterObjectType = 'ThisExpression';
   const {
     type: masterType,
@@ -13,7 +15,12 @@ const isAssignmentExpressionDuplicate = (body, assignmentExpression) => {
   } = assignmentExpression;
 
   const match = body
-    .filter(({ type, expression }) => type === 'ExpressionStatement' && expression.type === 'AssignmentExpression')
+    .filter(({ 
+      type = null, 
+      expression = { 
+        type = null 
+      } = {} 
+    } = {}) => type === 'ExpressionStatement' && expression.type === 'AssignmentExpression')
     .map(({ expression }) => expression)
     .find(expression => {
       const {
