@@ -98,10 +98,8 @@ export default declare(api => {
           if (!isDuplicate) return t.expressionStatement(assignmentExpression)
         });
 
-        console.log(constructor.node.body.body[0])
-
         const superIndex = constructor.node.body.body
-          .filter(node => node.type === 'ExpressionStatement' && node.expression.type === 'CallExpression')
+          .filter(node => node && node.type === 'ExpressionStatement' && node.expression && node.expression.type === 'CallExpression')
           .findIndex(({ expression: { callee: { type = null } = {} } = {} } = {}) => type === 'Super');
 
         const isSuperPresent = superIndex !== -1;
@@ -113,8 +111,6 @@ export default declare(api => {
         const constructorBodyWithoutSuper = isSuperPresent
           ? getArrayWithoutIndex(constructor.node.body.body, superIndex)
           : constructor.node.body.body
-
-          console.log(superIndex, isSuperPresent, constructor.node.body.body, 'yeet', constructorBodyWithoutSuper)
 
         constructor.node.body.body = [
           ...superCallExpression,
